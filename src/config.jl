@@ -3,6 +3,7 @@ function init_cfg()
 
     cfg["resistance_file"] = ""
     cfg["resistance_is_conductance"] = "false"
+    cfg["ground_file"] = ""
     cfg["source_file"] = ""
     cfg["project_name"] = "(filename prefix for project)"
 

@@ -17,7 +17,7 @@ const COMPARE_TO_FUTURE_VALUES = ["none", "1", "2", "both"]
 
 const COMPARISONS = ["equal", "within"]
 
-const SUPPORTED_ARGS = ["resistance_file", "resistance_is_conductance",
+const SUPPORTED_ARGS = ["resistance_file", "resistance_is_conductance", "ground_file",
     "source_file", "project_name", "parallelize", "parallel_batch_size",
     "block_size", "radius", "buffer", "source_threshold",
     "source_from_resistance", "r_cutoff", "precision",

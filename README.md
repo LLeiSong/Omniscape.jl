@@ -17,6 +17,15 @@ If you want to install the latest (unreleased) development version of Omniscape,
 using Pkg; Pkg.add(PackageSpec(name = "Omniscape", rev = "main"))
 ```
 
+If you want to install a third party modified version like this one, you can get download the repo and run locally:
+
+```julia
+using Pkg
+]
+dev /path/to/Omniscape.jl
+using Omniscape
+```
+
 ## Citing Omniscape.jl 
 
 Please cite [Landau et al. (2021)](https://doi.org/10.21105/joss.02829) when using Omniscape.jl.

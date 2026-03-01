@@ -97,6 +97,7 @@ function run_omniscape(
         resistance::MissingArray{T, 2} where T <: Number;
         reclass_table::Union{Nothing, MissingArray{T, 2} where T <: Number} = nothing,
         source_strength::MissingArray{T, 2} where T <: Number = source_from_resistance(resistance, cfg, reclass_table),
+        ground_strength::MissingArray{T, 2} where T <: Number = source_from_resistance(resistance, cfg, reclass_table),
         condition1::Union{Nothing, MissingArray{T, 2} where T <: Number} = nothing,
         condition2::Union{Nothing, MissingArray{T, 2} where T <: Number} = nothing,
         condition1_future::Union{Nothing, MissingArray{T, 2} where T <: Number} = nothing,
@@ -168,8 +169,8 @@ function run_omniscape(
         reclassify_resistance!(resistance, reclass_table)
     end
 
-    int_arguments["nrows"] = size(source_strength, 1)
-    int_arguments["ncols"] = size(source_strength, 2)
+    int_arguments["nrows"] = size(ground_strength, 1)
+    int_arguments["ncols"] = size(ground_strength, 2)
 
     # Set up conditional connctivity stuff
     conditions = Conditions(cfg["comparison1"],
@@ -199,7 +200,7 @@ function run_omniscape(
     Circuitscape.update!(cs_cfg, cs_cfg_dict)
 
     ## Calculate targets
-    targets = get_targets(source_strength,
+    targets = get_targets(ground_strength,
                           int_arguments,
                           precision)
 
@@ -448,6 +449,32 @@ function run_omniscape(path::String)
     else
         reclass_table = nothing
     end
+    
+    ## Load ground strengths
+    if !os_flags.source_from_resistance
+        if cfg["ground_file"] == ""
+            @error("You did not provide a source raster file path. Set source_from_resistance to true in your config if you want to generate source strength from the resistance layer.")
+            return
+        end
+        grounds_raster = read_raster("$(cfg["ground_file"])", precision)
+        ground_strength = grounds_raster[1]
+
+        # Check for raster alignment
+        check_raster_alignment(resistance_raster, grounds_raster,
+                               "resistance_file", "ground_file",
+                               allow_different_projections) && return
+
+        # get rid of unneeded raster to save memory
+        grounds_raster = nothing
+
+        # overwrite nodata with 0
+        ground_strength[ismissing.(ground_strength)] .= 0.0
+
+        # Set values < user-specified threshold to 0
+        ground_strength[ground_strength .< source_threshold] .= 0.0
+    else
+        ground_strength = source_from_resistance(resistance, cfg, reclass_table)
+    end
 
     ## Load source strengths
     if !os_flags.source_from_resistance
@@ -558,6 +585,7 @@ function run_omniscape(path::String)
     run_omniscape(
         cfg,
         resistance;
+        round_strength = ground_strength,
         source_strength = source_strength,
         condition1 = condition1,
         condition2 = condition2,
